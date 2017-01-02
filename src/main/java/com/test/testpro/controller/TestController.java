@@ -44,6 +44,7 @@ public class TestController {
 		//kafkaProducerService.sendMessage("testjava", "hello");
 	
 		
+		
 		User record = new User();
 		record.setUserName("lilianzhi");
 		record.setPassword("ps");
