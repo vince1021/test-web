@@ -92,7 +92,7 @@ public class SqlSessionFactoryShardBean implements FactoryBean<SqlSessionFactory
 
   private Properties configurationProperties;
 
-  private SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+  private SqlSessionFactoryShardBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryShardBuilder();
 
   private SqlSessionFactory sqlSessionFactory;
 
@@ -337,7 +337,7 @@ public class SqlSessionFactoryShardBean implements FactoryBean<SqlSessionFactory
    * default, {@code SqlSessionFactoryBuilder} creates {@code DefaultSqlSessionFactory} instances.
    *
    */
-  public void setSqlSessionFactoryBuilder(SqlSessionFactoryBuilder sqlSessionFactoryBuilder) {
+  public void setSqlSessionFactoryBuilder(SqlSessionFactoryShardBuilder sqlSessionFactoryBuilder) {
     this.sqlSessionFactoryBuilder = sqlSessionFactoryBuilder;
   }
 
@@ -547,7 +547,6 @@ public class SqlSessionFactoryShardBean implements FactoryBean<SqlSessionFactory
     if (this.sqlSessionFactory == null) {
       afterPropertiesSet();
     }
-
     return this.sqlSessionFactory;
   }
 

@@ -13,15 +13,16 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.mybatis.spring;
+package com.test.testpro.dbshard;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static org.apache.ibatis.reflection.ExceptionUtil.unwrapThrowable;
 import static org.mybatis.spring.SqlSessionUtils.closeSqlSession;
-import static org.mybatis.spring.SqlSessionUtils.getSqlSession;
 import static org.mybatis.spring.SqlSessionUtils.isSqlSessionTransactional;
 import static org.springframework.util.Assert.notNull;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -37,10 +38,14 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.MyBatisExceptionTranslator;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 
-import com.test.testpro.util.JSONUtils;
+import com.test.testpro.dbshard.annotation.DataSourceRouting;
+import com.test.testpro.dbshard.annotation.ShardingKey;
+import com.test.testpro.dbshard.customshard.DataSourceRoutingHandler;
 
 /**
  * Thread safe, Spring managed, {@code SqlSession} that works with Spring
@@ -77,7 +82,7 @@ import com.test.testpro.util.JSONUtils;
  * @see MyBatisExceptionTranslator
  * @version $Id$
  */
-public class SqlSessionTemplate implements SqlSession, DisposableBean {
+public class SqlSessionShardTemplate extends SqlSessionTemplate {
 
   private final SqlSessionFactory sqlSessionFactory;
 
@@ -93,7 +98,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
    *
    * @param sqlSessionFactory
    */
-  public SqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+  public SqlSessionShardTemplate(SqlSessionFactory sqlSessionFactory) {
     this(sqlSessionFactory, sqlSessionFactory.getConfiguration().getDefaultExecutorType());
   }
 
@@ -106,7 +111,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
    * @param sqlSessionFactory
    * @param executorType
    */
-  public SqlSessionTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType) {
+  public SqlSessionShardTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType) {
     this(sqlSessionFactory, executorType,
         new MyBatisExceptionTranslator(
             sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(), true));
@@ -126,8 +131,9 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
    * @param executorType
    * @param exceptionTranslator
    */
-  public SqlSessionTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType,
+  public SqlSessionShardTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType,
       PersistenceExceptionTranslator exceptionTranslator) {
+	  super(sqlSessionFactory,  executorType,exceptionTranslator);
 
     notNull(sqlSessionFactory, "Property 'sqlSessionFactory' is required");
     notNull(executorType, "Property 'executorType' is required");
@@ -139,6 +145,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
         SqlSessionFactory.class.getClassLoader(),
         new Class[] { SqlSession.class },
         new SqlSessionInterceptor());
+   
   }
 
   public SqlSessionFactory getSqlSessionFactory() {
@@ -408,9 +415,9 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
   * }
   *</pre>
   *
-  * The implementation of {@link DisposableBean} forces spring context to use {@link DisposableBean#destroy()} method instead of {@link SqlSessionTemplate#close()} to shutdown gently.
+  * The implementation of {@link DisposableBean} forces spring context to use {@link DisposableBean#destroy()} method instead of {@link SqlSessionShardTemplate#close()} to shutdown gently.
   *
-  * @see SqlSessionTemplate#close()
+  * @see SqlSessionShardTemplate#close()
   * @see org.springframework.beans.factory.support.DisposableBeanAdapter#inferDestroyMethodIfNecessary
   * @see org.springframework.beans.factory.support.DisposableBeanAdapter#CLOSE_METHOD_NAME
   */
@@ -428,19 +435,58 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
   private class SqlSessionInterceptor implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    	System.out.println(proxy.getClass().getName());
-    	System.out.println(method.getClass().getName());
-    	System.out.println(JSONUtils.toJSONString(args));
-    	
-    	
-    	
-      SqlSession sqlSession = getSqlSession(
-          SqlSessionTemplate.this.sqlSessionFactory,
-          SqlSessionTemplate.this.executorType,
-          SqlSessionTemplate.this.exceptionTranslator);
+    	//分库分表的关键，在执行之前根据参数获取相应的数据源
+    	//获取参数，数组有两个，一个map类函数，一个参数对象
+    	String dataName = null;
+    	if(args.length == 2){
+    		String cm = (String)args[0];
+    		int index = cm.lastIndexOf(".");
+    		if(index != -1){
+    			Class<?> mapperClass = Class.forName(cm.substring(0, index));//静态加载类
+    			Method mapperMethod = mapperClass.getMethod(cm.substring(index+1),args[1].getClass()); 
+    			//获取参数上的注解
+    			Object param = null;
+                Annotation[][] an = mapperMethod.getParameterAnnotations();
+    			for (int i = 0; i < an.length; i++) {
+    				Annotation[] arr2 = an[i];
+    				for (int c = 0; c < arr2.length; c++) {
+    					if(arr2[c] instanceof ShardingKey){
+    						param = args[1];
+    					}
+    				}
+
+    			}
+    			if(param == null){
+    				Field[] fields =  args[1].getClass().getDeclaredFields();  
+    		        for(Field f : fields){  
+    		            String filedName = f.getName();
+    		            //获取属性上的指定类型的注释  
+    		            Annotation annotation = f.getAnnotation(ShardingKey.class); 
+    		            if(annotation != null){
+    		            	param = ReflectUtil.getFieldValue(args[1], filedName);
+    		            }
+    		        }
+    			}
+    			
+    			final DataSourceRouting dataSourceRouting = mapperClass.getAnnotation(DataSourceRouting.class);
+				if (dataSourceRouting != null ) {
+					DataSourceRoutingHandler dataSourceRoutingHandler = dataSourceRouting.handler().newInstance();
+					dataName = dataSourceRoutingHandler.getDataSource(param);
+				}
+    		}
+ 
+    	}
+
+    	//old is  getSqlSession
+      SqlSession sqlSession = getShardSqlSession(
+          (ShardSqlSessionFactory)SqlSessionShardTemplate.this.sqlSessionFactory,
+          SqlSessionShardTemplate.this.executorType,
+          SqlSessionShardTemplate.this.exceptionTranslator,
+          dataName);
+      
       try {
         Object result = method.invoke(sqlSession, args);
-        if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
+        if (!isSqlSessionTransactional(sqlSession, SqlSessionShardTemplate.this.sqlSessionFactory)) {
           // force commit even on non-dirty sessions because some databases require
           // a commit/rollback before calling close()
           sqlSession.commit(true);
@@ -448,11 +494,11 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
         return result;
       } catch (Throwable t) {
         Throwable unwrapped = unwrapThrowable(t);
-        if (SqlSessionTemplate.this.exceptionTranslator != null && unwrapped instanceof PersistenceException) {
+        if (SqlSessionShardTemplate.this.exceptionTranslator != null && unwrapped instanceof PersistenceException) {
           // release the connection to avoid a deadlock if the translator is no loaded. See issue #22
-          closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
+          closeSqlSession(sqlSession, SqlSessionShardTemplate.this.sqlSessionFactory);
           sqlSession = null;
-          Throwable translated = SqlSessionTemplate.this.exceptionTranslator.translateExceptionIfPossible((PersistenceException) unwrapped);
+          Throwable translated = SqlSessionShardTemplate.this.exceptionTranslator.translateExceptionIfPossible((PersistenceException) unwrapped);
           if (translated != null) {
             unwrapped = translated;
           }
@@ -460,10 +506,35 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
         throw unwrapped;
       } finally {
         if (sqlSession != null) {
-          closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
+          closeSqlSession(sqlSession, SqlSessionShardTemplate.this.sqlSessionFactory);
         }
       }
     }
+
+	private SqlSession getShardSqlSession(ShardSqlSessionFactory sqlSessionFactory, ExecutorType executorType,
+			PersistenceExceptionTranslator exceptionTranslator,String dataName) {
+		
+			//notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
+		    //notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
+
+		    //SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
+
+		    SqlSession session = null;//sessionHolder(executorType, holder);
+//		    if (session != null) {
+//		      return session;
+//		    }
+
+//		    if (LOGGER.isDebugEnabled()) {
+//		      LOGGER.debug("Creating a new SqlSession");
+//		    }
+
+		    //session = sqlSessionFactory.openSession(executorType);
+		    session = sqlSessionFactory.openSessionFromDataSource(executorType, null, false, dataName);
+
+		    //registerSessionHolder(sessionFactory, executorType, exceptionTranslator, session);
+
+		    return session;
+	}
   }
 
 }

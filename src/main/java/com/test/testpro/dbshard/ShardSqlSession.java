@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.session.defaults;
+package com.test.testpro.dbshard;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -34,6 +34,7 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.result.DefaultMapResultHandler;
 import org.apache.ibatis.executor.result.DefaultResultContext;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -46,7 +47,7 @@ import org.apache.ibatis.session.SqlSession;
  *
  * @author Clinton Begin
  */
-public class DefaultSqlSession implements SqlSession {
+public class ShardSqlSession implements SqlSession {
 
   private Configuration configuration;
   private Executor executor;
@@ -55,14 +56,14 @@ public class DefaultSqlSession implements SqlSession {
   private boolean dirty;
   private List<Cursor<?>> cursorList;
 
-  public DefaultSqlSession(Configuration configuration, Executor executor, boolean autoCommit) {
+  public ShardSqlSession(Configuration configuration, Executor executor, boolean autoCommit) {
     this.configuration = configuration;
     this.executor = executor;
     this.dirty = false;
     this.autoCommit = autoCommit;
   }
 
-  public DefaultSqlSession(Configuration configuration, Executor executor) {
+  public ShardSqlSession(Configuration configuration, Executor executor) {
     this(configuration, executor, false);
   }
 
@@ -195,6 +196,7 @@ public class DefaultSqlSession implements SqlSession {
     try {
       dirty = true;
       MappedStatement ms = configuration.getMappedStatement(statement);
+
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);

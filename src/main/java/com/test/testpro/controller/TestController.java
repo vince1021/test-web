@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.test.testpro.persistence.dao.UserMapper;
+import com.test.testpro.persistence.dao.TOrderMapper;
+import com.test.testpro.persistence.dao1.UserMapper;
 import com.test.testpro.persistence.po.User;
+import com.test.testpro.service.TestService;
 import com.test.testpro.util.JSONUtils;
 
 
@@ -22,8 +24,11 @@ public class TestController {
 	@Autowired(required=true)
 	UserMapper userMapper;
 //	
-//	@Autowired(required=true)
-//	TOrderMapper tOrderMapper;
+	@Autowired(required=true)
+	TOrderMapper tOrderMapper;
+	
+	@Autowired(required=true)
+	TestService testService;
 
 	
 	@RequestMapping(value = "/user/login.json", method = RequestMethod.GET)
@@ -35,6 +40,28 @@ public class TestController {
 
 	}
 	
+
+	@RequestMapping(value = "/user/order.htm", method = RequestMethod.GET)
+	public String testOrder(
+			@RequestParam(value = "id", required=false) Long id,
+			@RequestParam(value = "op", required=false) String op,
+			HttpServletRequest request, HttpServletResponse response){
+		
+		//kafkaProducerService.sendMessage("testjava", "hello");
+	
+		
+		if("add".equals(op)){
+			testService.testOrder1( id);
+		}else{
+			tOrderMapper.deleteByPrimaryKey(id);
+		}
+		
+		
+		return "login";
+	}
+
+	
+	//@Transactional
 	@RequestMapping(value = "/user/login.htm", method = RequestMethod.GET)
 	public String loginPage(
 			@RequestParam(value = "user_name", required=false) Long chatid,

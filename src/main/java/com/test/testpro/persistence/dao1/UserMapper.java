@@ -1,4 +1,4 @@
-package com.test.testpro.persistence.dao;
+package com.test.testpro.persistence.dao1;
 
 import java.util.List;
 
@@ -25,4 +25,5 @@ public interface UserMapper {
 	int selectCount(User record);
 
 	int deleteSelective(User record);
+	
 }

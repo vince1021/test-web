@@ -11,13 +11,14 @@
 		http://www.springframework.org/schema/tx/spring-tx-4.0.xsd"
 	default-autowire="byName">
 	
+	<!-- 分库分表的配置 -->
+	
 	<!--bean id="propertyConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="/WEB-INF/classes/config/wbbdb.properties" />
 	</bean-->
-
 	
-	<bean id="ds_0" class="com.alibaba.druid.pool.DruidDataSource"
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
 		init-method="init" destroy-method="close">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
         <property name="url" value="${jdbc.url}"/>
@@ -44,6 +45,112 @@
 		</property>
 	</bean>
 	
+	<bean id="trade0000" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://192.168.59.103:3309/trade0000"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    	<property name="maxActive" value="10" />
+		<property name="initialSize" value="1" />
+		<property name="maxWait" value="60000" />
+		<property name="minIdle" value="1" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="50" />
+		<property name="maxOpenPreparedStatements" value="100" />
+		<property name="proxyFilters">
+			<list>
+				<ref bean="statFilter" />
+				<ref bean="logFilter" />
+			</list>
+		</property>
+	</bean>
+	<bean id="trade0001" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://192.168.59.103:3309/trade0001"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    	<property name="maxActive" value="10" />
+		<property name="initialSize" value="1" />
+		<property name="maxWait" value="60000" />
+		<property name="minIdle" value="1" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="50" />
+		<property name="maxOpenPreparedStatements" value="100" />
+		<property name="proxyFilters">
+			<list>
+				<ref bean="statFilter" />
+				<ref bean="logFilter" />
+			</list>
+		</property>
+	</bean>
+	<bean id="trade0002" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://192.168.59.103:3309/trade0002"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    	<property name="maxActive" value="10" />
+		<property name="initialSize" value="1" />
+		<property name="maxWait" value="60000" />
+		<property name="minIdle" value="1" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="50" />
+		<property name="maxOpenPreparedStatements" value="100" />
+		<property name="proxyFilters">
+			<list>
+				<ref bean="statFilter" />
+				<ref bean="logFilter" />
+			</list>
+		</property>
+	</bean>
+	<bean id="trade0003" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://192.168.59.103:3309/trade0003"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    	<property name="maxActive" value="10" />
+		<property name="initialSize" value="1" />
+		<property name="maxWait" value="60000" />
+		<property name="minIdle" value="1" />
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="50" />
+		<property name="maxOpenPreparedStatements" value="100" />
+		<property name="proxyFilters">
+			<list>
+				<ref bean="statFilter" />
+				<ref bean="logFilter" />
+			</list>
+		</property>
+	</bean>
+	
+	
 	<bean id="statFilter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
 		<property name="statementExecutableSqlLogEnable" value="false" />
 		<property name="dataSourceLogEnabled" value="false" />
@@ -63,35 +170,67 @@
 	</bean>
 	-->
 	
+   
+    
+	<context:component-scan base-package="com.test.testpro.service" />
+    
+    <context:annotation-config />
 
+	<!-- 事物 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="ds_0" />
+        <property name="dataSource" ref="trade0000" />
     </bean>
-<!--<bean id="transactionManager1" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    
+	<!--<bean id="transactionManager1" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource1" />
     </bean> -->
     
-  
-<!--     <context:component-scan base-package="com.yueke.mobile.persistence.dao,com.yueke.mobile.service" /> -->
     
-  
+    <bean id="shardDataSource" class="com.test.testpro.dbshard.ShardDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry key="dataSource0" value-ref="trade0000"></entry>
+				<entry key="dataSource1" value-ref="trade0001"></entry>
+				<entry key="dataSource2" value-ref="trade0002"></entry>
+				<entry key="dataSource3" value-ref="trade0003"></entry>
+			</map>
+		</property>
+	</bean>
+    
 
-    <context:annotation-config />
-
-
-    <tx:annotation-driven />
 
 	<!--整合spring与mybatis -->
 
-	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<property name="dataSource" ref="ds_0" />
+	<!-- 分库分表配置 -->
+	<bean id="sqlSessionFactoryShard1" class="com.test.testpro.dbshard.SqlSessionFactoryShardBean">
+		<property name="dataSource" ref="shardDataSource" />
 		<property name="configLocation" value="classpath:/config/mybatis-config.xml"></property>
 		<property name="typeAliasesPackage" value="com.test.testpro.persistence.po"></property>
-		<property name="mapperLocations" value="classpath*:/sqlmapper/*.xml"></property>  
+		<property name="mapperLocations" value="classpath*:/sdsqlmapper/*.xml"></property>
+		<property name="plugins">
+			<array>
+				<!--<bean class="com.test.testpro.dbshard.interceptor.ExecutorInterceptor" /> -->
+				<bean class="com.test.testpro.dbshard.interceptor.StatementHandlerInterceptor" />
+			</array>
+		</property>   
 	</bean>
-	<bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	<bean name="mapperShardScannerConfigurer" class="com.test.testpro.dbshard.MapperScannerShardConfigurer">
 		<property name="basePackage" value="com.test.testpro.persistence.dao"></property>
-		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactoryShard1" />
+	</bean>
+	
+	<!-- 非分库分表配置 -->
+	<bean id="sqlSessionFactory1" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="trade0000" />
+        <property name="configLocation" value="classpath:/config/mybatis-config.xml"></property>
+		<property name="typeAliasesPackage" value="com.test.testpro.persistence.po"></property>
+		<property name="mapperLocations" value="classpath*:/sqlmapper/*.xml"></property>
+    </bean>
+
+    <bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.test.testpro.persistence.dao1" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory1" />
 	</bean>
 
 </beans>  

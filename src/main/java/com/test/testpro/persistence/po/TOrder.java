@@ -1,7 +1,11 @@
 package com.test.testpro.persistence.po;
 
+import com.test.testpro.dbshard.annotation.ShardingKey;
+
 public class TOrder extends DBRecord {
 
+	
+	@ShardingKey
 	private Long orderId;
 
 	private Integer userId;

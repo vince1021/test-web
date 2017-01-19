@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.apache.ibatis.session.defaults;
+package com.test.testpro.dbshard;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -27,6 +27,7 @@ import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
+import org.apache.ibatis.session.defaults.DefaultSqlSession;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
@@ -34,43 +35,42 @@ import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 /**
  * @author Clinton Begin
  */
-public class DefaultSqlSessionFactory implements SqlSessionFactory {
+public class ShardSqlSessionFactory implements SqlSessionFactory {
 
   private final Configuration configuration;
 
-  public DefaultSqlSessionFactory(Configuration configuration) {
+  public ShardSqlSessionFactory(Configuration configuration) {
     this.configuration = configuration;
   }
 
   @Override
   public SqlSession openSession() {
-    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
+    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false, null);
   }
 
   @Override
   public SqlSession openSession(boolean autoCommit) {
-    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, autoCommit);
+    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, autoCommit, null);
   }
 
   @Override
   public SqlSession openSession(ExecutorType execType) {
-	  System.out.println("openSession(ExecutorType execType)--------");
-    return openSessionFromDataSource(execType, null, false);
+    return openSessionFromDataSource(execType, null, false, null);
   }
 
   @Override
   public SqlSession openSession(TransactionIsolationLevel level) {
-    return openSessionFromDataSource(configuration.getDefaultExecutorType(), level, false);
+    return openSessionFromDataSource(configuration.getDefaultExecutorType(), level, false, null);
   }
 
   @Override
   public SqlSession openSession(ExecutorType execType, TransactionIsolationLevel level) {
-    return openSessionFromDataSource(execType, level, false);
+    return openSessionFromDataSource(execType, level, false, null);
   }
 
   @Override
   public SqlSession openSession(ExecutorType execType, boolean autoCommit) {
-    return openSessionFromDataSource(execType, null, autoCommit);
+    return openSessionFromDataSource(execType, null, autoCommit, null);
   }
 
   @Override
@@ -88,19 +88,19 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
-  private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
-   
-	  System.out.println("openSessionFromDataSource------------");
+  public SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit,String dataSourceId) {
 	  
 	  Transaction tx = null;
     try {
       final Environment environment = configuration.getEnvironment();
+      //org.mybatis.spring.transaction.SpringManagedTransactionFactory
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      System.out.println("environment.getDataSource()------------"+transactionFactory.getClass().getName());
-      //此处可以把多数据源转换为单数据源
-      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      //此处可以把多数据源转换为单数据源,分库分表的关键点
+      ShardDataSource shardDataSource = (ShardDataSource)environment.getDataSource();
+
+      tx = transactionFactory.newTransaction(shardDataSource.getShardDataSource(dataSourceId), level, autoCommit);
       final Executor executor = configuration.newExecutor(tx, execType);
-      return new DefaultSqlSession(configuration, executor, autoCommit);
+      return new ShardSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()
       throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
@@ -123,7 +123,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
       final Transaction tx = transactionFactory.newTransaction(connection);
       final Executor executor = configuration.newExecutor(tx, execType);
-      return new DefaultSqlSession(configuration, executor, autoCommit);
+      return new ShardSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
     } finally {

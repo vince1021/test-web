@@ -1,4 +1,4 @@
-package com.test.testpro.util;
+package com.test.testpro.dbshard;
 
 import java.lang.reflect.Field;
 
