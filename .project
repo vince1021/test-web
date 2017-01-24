@@ -3,6 +3,7 @@
 	<name>test-web</name>
 	<comment></comment>
 	<projects>
+		<project>tsharding-client</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
