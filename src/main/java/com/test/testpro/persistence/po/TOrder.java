@@ -1,6 +1,6 @@
 package com.test.testpro.persistence.po;
 
-import com.test.testpro.dbshard.annotation.ShardingKey;
+import org.shardmybatis.spring.dbsharding.annotation.ShardingKey;
 
 public class TOrder extends DBRecord {
 

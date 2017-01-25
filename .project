@@ -3,7 +3,7 @@
 	<name>test-web</name>
 	<comment></comment>
 	<projects>
-		<project>tsharding-client</project>
+		<project>mybatis-sharding</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

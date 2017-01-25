@@ -1,6 +1,6 @@
 package com.test.testpro.persistence.customshard;
 
-import com.test.testpro.dbshard.customshard.DataSourceRoutingHandler;
+import org.shardmybatis.spring.dbsharding.customshard.DataSourceRoutingHandler;
 
 /**
  * Mapper注解参数是对象，在对象的变量上加注解，如果不是直接注解

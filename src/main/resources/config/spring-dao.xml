@@ -171,7 +171,6 @@
 	-->
 	
    
-    
 	<context:component-scan base-package="com.test.testpro.service" />
     
     <context:annotation-config />
@@ -187,7 +186,7 @@
     </bean> -->
     
     
-    <bean id="shardDataSource" class="com.test.testpro.dbshard.ShardDataSource">
+    <bean id="shardDataSource" class="org.shardmybatis.spring.dbsharding.ShardDataSource">
 		<property name="targetDataSources">
 			<map key-type="java.lang.String">
 				<entry key="dataSource0" value-ref="trade0000"></entry>
@@ -203,7 +202,7 @@
 	<!--整合spring与mybatis -->
 
 	<!-- 分库分表配置 -->
-	<bean id="sqlSessionFactoryShard1" class="com.test.testpro.dbshard.SqlSessionFactoryShardBean">
+	<bean id="sqlSessionFactoryShard1" class="org.shardmybatis.spring.dbsharding.SqlSessionFactoryShardBean">
 		<property name="dataSource" ref="shardDataSource" />
 		<property name="configLocation" value="classpath:/config/mybatis-config.xml"></property>
 		<property name="typeAliasesPackage" value="com.test.testpro.persistence.po"></property>
@@ -211,11 +210,11 @@
 		<property name="plugins">
 			<array>
 				<!--<bean class="com.test.testpro.dbshard.interceptor.ExecutorInterceptor" /> -->
-				<bean class="com.test.testpro.dbshard.interceptor.StatementHandlerInterceptor" />
+				<bean class="org.shardmybatis.spring.dbsharding.interceptor.StatementHandlerInterceptor" />
 			</array>
 		</property>   
 	</bean>
-	<bean name="mapperShardScannerConfigurer" class="com.test.testpro.dbshard.MapperScannerShardConfigurer">
+	<bean name="mapperShardScannerConfigurer" class="org.shardmybatis.spring.dbsharding.MapperScannerShardConfigurer">
 		<property name="basePackage" value="com.test.testpro.persistence.dao"></property>
 		<property name="sqlSessionFactory" ref="sqlSessionFactoryShard1" />
 	</bean>

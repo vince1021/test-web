@@ -2,10 +2,12 @@ package com.test.testpro.persistence.dao;
 
 import java.util.List;
 
-import com.test.testpro.dbshard.annotation.DataSourceRouting;
-import com.test.testpro.dbshard.annotation.ShardingKey;
+import org.shardmybatis.spring.dbsharding.annotation.DataSourceRouting;
+import org.shardmybatis.spring.dbsharding.annotation.ShardingKey;
+
 import com.test.testpro.persistence.customshard.OrderModuloSharding;
 import com.test.testpro.persistence.po.TOrder;
+
 
 @DataSourceRouting(handler = OrderModuloSharding.class)
 public interface TOrderMapper {
